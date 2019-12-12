@@ -45,4 +45,3 @@ var intervalid = setInterval(test, 5000);
 
 //Get Griddy price every 5 minutes
 
-//
