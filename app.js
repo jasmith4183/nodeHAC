@@ -33,21 +33,22 @@ const options = {
        'Content-Type': 'application/json',
        'Content-Length': data.length,
    },
-   //body: {'settlement_point':'LZ_WEST'}
+   
 }
-// const data = {"settlement_point":"LZ_WEST"};
 
+var secondsUntilRefresh = 0;
 var body ='';
+var parsed = {};
 const req = https.request(options, res => {
     console.log(`statusCode: ${res.statusCode}`)
-    // console.log('Body: ' + body);
-   // console.log('Headers: ' + JSON.stringify(res.headers));
     res.on('data', d => {
-     //process.stdout.write(d)
      body += d;
-     //console.log(body);
+     console.log(body);
      try {
-        const parsed = JSON.parse(body)
+        parsed = JSON.parse(body)
+        secondsUntilRefresh = parseInt(parsed.seconds_until_refresh);
+        console.log(secondsUntilRefresh);
+        console.log(parsed.now.price_ckwh);
       } catch(err) {
         console.error(err)
       }
@@ -61,21 +62,7 @@ const req = https.request(options, res => {
   
   req.write(data)
   req.end()
-  //var parsed = JSON.parse(body);
-  
-                                
-// var req = https.request(options, function (res) {
-//    console.log('Status: ' + res.statusCode);
-//    console.log('Headers: ' + JSON.stringify(res.headers));
-//    res.setEncoding('utf8');
-//    res.on('data', function (body) {
-//        console.log('Body: ' + body);
-//    });
-// });
-// req.on('error', function (e) {
-//    console.log('problem with request: ' + e.message);
-//    console.log(data.length);
-// });
+ 
 
 //Get Griddy price every 5 minutes
 
