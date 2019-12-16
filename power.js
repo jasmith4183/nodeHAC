@@ -17,15 +17,18 @@ const options = {
        'Content-Length': data.length,
    },
 }
+function getGriddyData(){
+    body = '';
+    parsed = {};
 const req = https.request(options, res => {
-    console.log(`statusCode: ${res.statusCode}`)
+    //console.log(`statusCode: ${res.statusCode}`)
     res.on('data', d => {
      body += d;
     // console.log(body);
     try {
         parsed = JSON.parse(body);
         secondsUntilRefresh = parseInt(parsed.seconds_until_refresh);
-        console.log(secondsUntilRefresh);
+        console.log("Time Till New Data Available: " + secondsUntilRefresh);
         console.log(parsed.now.price_ckwh);
      } catch(err) {
        console.error(err)
@@ -38,11 +41,12 @@ const req = https.request(options, res => {
   })
   req.write(data)
   req.end()
+}
 // End of HTTP POST Request COde
 
 
+//getGriddyData();
+var griddyInterval = setInterval(getGriddyData, 60000);
 
-
-
-exports.price = 31;
+exports.price =31;
 exports.kwh = 200;
