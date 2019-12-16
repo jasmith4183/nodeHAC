@@ -1,6 +1,8 @@
 // power.js is responsible for connection to griddy and performing all power related calculations and loogging
 const https = require('https')
 // Variables and Constant Declarations
+const tduPrice = 6.0;
+var griddyPrice = 0.0;
 var secondsUntilRefresh = 0; // Used to store the seconds until new Griddy data is available
 var body =''; // Used to store the body of the response from griddy
 var parsed = {}; // Used to store the parsed JSON object after parsing the body from the http response
@@ -30,6 +32,8 @@ const req = https.request(options, res => {
         secondsUntilRefresh = parseInt(parsed.seconds_until_refresh);
         console.log("Time Till New Data Available: " + secondsUntilRefresh);
         console.log(parsed.now.price_ckwh);
+        griddyPrice = parseFloat(parsed.now.price_ckwh);
+        exports.price = tduPrice + griddyPrice;
      } catch(err) {
        console.error(err)
      }
@@ -46,7 +50,8 @@ const req = https.request(options, res => {
 
 
 //getGriddyData();
+getGriddyData();
 var griddyInterval = setInterval(getGriddyData, 60000);
 
-exports.price =31;
+exports.price = tduPrice + griddyPrice;
 exports.kwh = 200;

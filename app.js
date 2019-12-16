@@ -18,12 +18,9 @@ function test() {
     console.log("Sending MQTT Data");
     console.log(power.price);
 }
-var intervalid = setInterval(test, 60000);
+var intervalid = setInterval(test, 30000);
 
 
-// http post test code to attempt to connect to griddy api and get json object back
 
  
-
-//Get Griddy price every 5 minutes
 
