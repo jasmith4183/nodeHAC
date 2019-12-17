@@ -11,14 +11,14 @@ const hiPriceTimeout = 1800000; //Timeout in milliseconds
 //MQTT Testcode to connect to MQTT and send messages on an interval
 client.on('connect', () => {
        client.publish('home/pool/pump/cmnd/Power1', 'ON')
-       console.log("MQTT Connected")
+    //    console.log("MQTT Connected")
 })
 function test() {
     client.publish('home/pool/pump/cmnd/Power1', 'ON')
-    console.log("Sending MQTT Data");
-    console.log(power.price);
+   // console.log("Sending MQTT Data");
+   // console.log(power.price);
 }
-var intervalid = setInterval(test, 30000);
+// var intervalid = setInterval(test, 30000);
 
 
 
