@@ -4,6 +4,7 @@ const https = require('https')
 const tduPrice = 6.0;
 var griddyPrice = 0.0;
 var secondsUntilRefresh = 0; // Used to store the seconds until new Griddy data is available
+var latestGriddyData = {};
 const data = '{"settlement_point":"LZ_WEST"}'; // Data for POst Request
 const options = { //Options for griddy http request
    hostname: 'app.gogriddy.com',
@@ -22,7 +23,9 @@ const options = { //Options for griddy http request
 //=================================================================================================================
 //                                        HTTP POST Request Function
 //=================================================================================================================
-async function getGriddyData(postData, postOptions){
+//  I was wanting this function to return the JSON object but can not seem to because its currently async code
+//  and the return happens before the data has been collected and parsed
+async function getHttpRequest(postData, postOptions){
     const req = https.request(postOptions, res => {
     // console.log(`statusCode: ${res.statusCode}`)
     var chunks = '';
@@ -34,7 +37,8 @@ async function getGriddyData(postData, postOptions){
     
     res.on('end', function() {
         const object = JSON.parse(chunks)
-        console.log(object);
+        // console.log(object);
+        latestGriddyData = object;
     });
   })
   req.on('error', error => {
@@ -47,18 +51,6 @@ async function getGriddyData(postData, postOptions){
 //                                             End of HTTP POST Request Function
 //=================================================================================================================
 
-//=================================================================================================================
-//                                                 Parse Data Function
-//=================================================================================================================
-async function parseData(unparsedData){
-    console.log(unparsedData);
-    var parsedData = JSON.parse(unparsedData);
-    console.log(parsedData.now.price_ckwh);
-    return parsedData;
-}
-//=================================================================================================================
-//                                                End of Parse Data Function
-//=================================================================================================================
 
 
 //=================================================================================================================
@@ -78,12 +70,15 @@ async function griddyDoStuff(dataIn){
 //=================================================================================================================
 //                                 ASync/Await Function to run code Syncronously
 //=================================================================================================================
+//                This function needs to be moved to app.js so that other functions can be ran in line
+//                 This code does not function as intended functions are strill running async
 async function doStuff(){
 try{
-    var griddyData = await getGriddyData(data, options);
+    var griddyData = await getHttpRequest(data, options);
     // console.log(griddyData);
-    //var griddyJson = await parseData(griddyData);
+    
     // griddyDoStuff(griddyJson);
+    console.log(latestGriddyData);
 }
 catch(err){
     console.error(err);
