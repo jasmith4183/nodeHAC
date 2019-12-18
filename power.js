@@ -1,3 +1,4 @@
+const dataHandler = require('./dataHandler')
 // power.js is responsible for connection to griddy and performing all power related calculations and loogging
 const https = require('https')
 // Variables and Constant Declarations
@@ -15,6 +16,10 @@ const options = { //Options for griddy http request
        'Content-Type': 'application/json',
        'Content-Length': data.length,
    },
+}
+
+function isEmpty(obj) {
+    return Object.getOwnPropertyNames(obj).length === 0;
 }
 //=================================================================================================================
 //                                              End of Variables 
@@ -39,6 +44,7 @@ async function getHttpRequest(postData, postOptions){
         const object = JSON.parse(chunks)
         // console.log(object);
         latestGriddyData = object;
+        dataHandler.mongoInsert('mongodb://localhost:27017/', 'mydb', 'griddyData', latestGriddyData);
     });
   })
   req.on('error', error => {
@@ -77,8 +83,13 @@ try{
     var griddyData = await getHttpRequest(data, options);
     // console.log(griddyData);
     
-    // griddyDoStuff(griddyJson);
-    console.log(latestGriddyData);
+    if(!isEmpty(latestGriddyData)){
+      griddyDoStuff(latestGriddyData);  
+      console.log(latestGriddyData);
+      exports.griddyExportData = latestGriddyData;
+    }
+    
+   
 }
 catch(err){
     console.error(err);
