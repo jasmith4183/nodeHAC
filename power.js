@@ -1,22 +1,11 @@
 const dataHandler = require('./dataHandler')
+const axios = require('axios')
 // power.js is responsible for connection to griddy and performing all power related calculations and loogging
-const https = require('https')
 // Variables and Constant Declarations
 const tduPrice = 6.0;
 var griddyPrice = 0.0;
 var secondsUntilRefresh = 0; // Used to store the seconds until new Griddy data is available
 var latestGriddyData = {};
-const data = '{"settlement_point":"LZ_WEST"}'; // Data for POst Request
-const options = { //Options for griddy http request
-   hostname: 'app.gogriddy.com',
-   port: 443,
-   path: '/api/v1/insights/getnow',
-   method: 'POST',
-   headers: {
-       'Content-Type': 'application/json',
-       'Content-Length': data.length,
-   },
-}
 
 function isEmpty(obj) {
     return Object.getOwnPropertyNames(obj).length === 0;
@@ -25,47 +14,14 @@ function isEmpty(obj) {
 //                                              End of Variables 
 //=================================================================================================================
 
-//=================================================================================================================
-//                                        HTTP POST Request Function
-//=================================================================================================================
-//  I was wanting this function to return the JSON object but can not seem to because its currently async code
-//  and the return happens before the data has been collected and parsed
-async function getHttpRequest(postData, postOptions){
-    const req = https.request(postOptions, res => {
-    // console.log(`statusCode: ${res.statusCode}`)
-    var chunks = '';
-
-    res.on("data", function (chunk) {
-      //console.log(chunk.length)
-      chunks += chunk;
-    });
-    
-    res.on('end', function() {
-        const object = JSON.parse(chunks)
-        // console.log(object);
-        latestGriddyData = object;
-        dataHandler.mongoInsert('mongodb://localhost:27017/', 'mydb', 'griddyData', latestGriddyData);
-    });
-  })
-  req.on('error', error => {
-    console.error(error)
-  })
-  req.write(postData)
-  req.end()
-}
-//=================================================================================================================
-//                                             End of HTTP POST Request Function
-//=================================================================================================================
-
 
 
 //=================================================================================================================
 //                                      Function to do Stuff With Data From Griddy
 //=================================================================================================================
-async function griddyDoStuff(dataIn){
+function griddyDoStuff(dataIn){
     secondsUntilRefresh = parseInt(dataIn.seconds_until_refresh);
     console.log("Time Till New Data Available: " + secondsUntilRefresh);
-    console.log(dataIn.now.price_ckwh);
     exports.price = tduPrice + parseFloat(dataIn.now.price_ckwh);
 }
 //=================================================================================================================
@@ -80,16 +36,23 @@ async function griddyDoStuff(dataIn){
 //                 This code does not function as intended functions are strill running async
 async function doStuff(){
 try{
-    var griddyData = await getHttpRequest(data, options);
-    // console.log(griddyData);
     
-    if(!isEmpty(latestGriddyData)){
+    var axData = await axios.post('https://app.gogriddy.com/api/v1/insights/getnow', {settlement_point:'LZ_WEST'})
+    .then(function (response) {
+        let resData = response.data.now;
+        dataHandler.dbInsert('griddyData', resData)
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+
+//    var newData = getHttpRequest(data, options);
+//    console.log(axData)
+     if(!isEmpty(latestGriddyData)){
       griddyDoStuff(latestGriddyData);  
-      console.log(latestGriddyData);
+      console.log('Request Completed: ' + latestGriddyData.now.date_local_tz);
       exports.griddyExportData = latestGriddyData;
-    }
-    
-   
+    } 
 }
 catch(err){
     console.error(err);
