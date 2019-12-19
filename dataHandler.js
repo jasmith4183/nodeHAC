@@ -1,6 +1,6 @@
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
-var mongoDB
+var mongoDB = 'mydb'
   
 function dbInsert(monogoCollection, mongoData){
     MongoClient.connect(url,  { useUnifiedTopology: true }, function(err, db) {

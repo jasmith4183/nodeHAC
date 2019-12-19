@@ -34,9 +34,7 @@ client.on('message', (topic, message) => {
   })
   
   
-function test() {
-    client.publish('home/pool/pump/cmnd/Power1', 'ON')
-}
+
 //=======================================================================================
 //                               Get Pump Speed Function Start
 //=======================================================================================
