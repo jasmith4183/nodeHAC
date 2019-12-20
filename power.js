@@ -20,9 +20,8 @@ function isEmpty(obj) {
 //                                      Function to do Stuff With Data From Griddy
 //=================================================================================================================
 function griddyDoStuff(dataIn){
-    secondsUntilRefresh = parseInt(dataIn.seconds_until_refresh);
-    console.log("Time Till New Data Available: " + secondsUntilRefresh);
-    exports.price = tduPrice + parseFloat(dataIn.now.price_ckwh);
+    module.exports.price = tduPrice + parseFloat(dataIn.price_ckwh);
+    
 }
 //=================================================================================================================
 //                               End of Function to do Stuff With Data From Griddy
@@ -41,7 +40,8 @@ try{
     .then(function (response) {
         let resData = response.data.now;
         dataHandler.dbInsert('griddyData', resData)
-      })
+        griddyDoStuff(resData);
+    })
       .catch(function (error) {
         console.log(error);
       });
