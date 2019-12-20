@@ -45,15 +45,8 @@ try{
       .catch(function (error) {
         console.log(error);
       });
-
-//    var newData = getHttpRequest(data, options);
-//    console.log(axData)
-     if(!isEmpty(latestGriddyData)){
-      griddyDoStuff(latestGriddyData);  
-      console.log('Request Completed: ' + latestGriddyData.now.date_local_tz);
-      exports.griddyExportData = latestGriddyData;
     } 
-}
+
 catch(err){
     console.error(err);
     // console.log(griddyData);

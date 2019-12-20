@@ -1,5 +1,6 @@
 const dataHandler = require('./dataHandler')
 const mqtt = require('mqtt')
+const dateFNS = require('date-fns')
 const client = mqtt.connect('mqtt://localhost:1883')
 
 //set constants for things such as high price, pump timeout
@@ -15,7 +16,7 @@ client.on('connect', () => {
        client.subscribe('home/pool/pump/stat/POWER2')
        client.subscribe('home/pool/pump/stat/POWER3')
        client.subscribe('home/pool/pump/stat/POWER4')
-    //    console.log("MQTT Connected")
+      // console.log(format(new Date().now(), 'MM/YY/DD'))
 })
 
 client.on('message', (topic, message) => {
@@ -54,6 +55,7 @@ console.log(speed)
 function setPumpSpeed(desiredSpeed){
     let topic = 'home/pool/pump/cmnd/Power' + desiredSpeed;
     client.publish(topic, 'ON')
+    dataHandler.dbInsert('poolData', {'date': new Date().getTime(), 'speed': desiredSpeed})
 }
 //=======================================================================================
 //                                  Set Pump Speed Function End
