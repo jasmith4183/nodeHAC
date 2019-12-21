@@ -1,5 +1,7 @@
 const dataHandler = require('./dataHandler')
+const schedule = require('node-schedule')
 const mqtt = require('mqtt')
+const myEmitter = require('./myEmitter')
 const scheduler = require('./scheduler')
 const dateFNS = require('date-fns')
 const client = mqtt.connect('mqtt://localhost:1883')
@@ -8,22 +10,26 @@ var home ={
         "pumpOff": {
           "schedule":[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
           "topic": 'home/pool/pump/cmnd/POWER1',
-          "onMessage": 'ON'
+          "onMessage": 'ON',
+          "offMessage": 'OFF'
         },
         "pumpLow": {
             "schedule":[0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0],
             "topic": 'home/pool/pump/cmnd/POWER2',
-            "onMessage": 'ON'
+            "onMessage": 'ON',
+            "offMessage": 'OFF'
         },
         "pumpMed": {
             "schedule": [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],
             "topic": 'home/pool/pump/cmnd/POWER3',
-            "onMessage": 'ON'
+            "onMessage": 'ON',
+            "offMessage": 'OFF'
         },
         "pumpHi": {
             "schedule":[0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1],
             "topic": 'home/pool/pump/cmnd/POWER4',
-            "onMessage": 'ON'
+            "onMessage": 'ON',
+            "offMessage": 'OFF'
         }
    
     }
@@ -89,21 +95,36 @@ function setPumpSpeed(desiredSpeed){
 //=======================================================================================
 //                             Hi Price Override Function Start
 //=======================================================================================
-function pumpHiPriceOverride(hi, current){
-    if(!hiShutdown && current >= hi){
-        setPumpSpeed(1);
-        hiShutdown = true;
-        console.log('Hi Price Shutdown Started')
+function pumpHiPriceShutdown(priceSpike){
+    
+        if(priceSpike && !hiShutdown){
+            setPumpSpeed(1);
+            hiShutdown = true;
+            console.log('Hi Price Shutdown Started');
+        }
+        else if(priceSpike && hiShutdown){
+            console.log('Hi Price Shutdown Still In Effect');
+        }
+        else if(!priceSpike && hiShutdown){
+            hiShutdown = false;
+            console.log('Hi Price Shutdown Ended');
 
-    }
-    else if(hiShutdown && poolOffTime <= poolHiPriceTimeout){
+        }
+    
+    // else if(hiShutdown && poolOffTime <= poolHiPriceTimeout){
 
-    }
-    else if(hiShutdown){
-        hiShutdown = false;
-        console.log('Hi Price Shutdown Over')
-    }
+    // }
+    // else if(hiShutdown){
+    //     hiShutdown = false;
+    //     console.log('Hi Price Shutdown Over')
+    // }
 }
+
+  myEmitter.on('priceSpike', (priceSpike) => {
+    pumpHiPriceShutdown(priceSpike);
+
+  });
+ 
 //=======================================================================================
 //                       Hi Price Override Function End
 //=======================================================================================
@@ -112,13 +133,11 @@ function pumpHiPriceOverride(hi, current){
 //=======================================================================================
 //                       Pool Scheduler Function Start
 //=======================================================================================
-function poolScheduler(array, topic, command){
-    let currentDate = new Date();
-    let currentHour = currentDate.getHours();
-    if(array[currentHour] == 1){ 
-console.log("Running " + topic + " at " + currentHour)
-    }
-}
+
+// scheduler('mqtt', home.pool.pumpOff.schedule, home.pool.pumpOff.topic, home.pool.pumpOff.onMessage);
+// scheduler('mqtt', home.pool.pumpLow.schedule, home.pool.pumpLow.topic, home.pool.pumpLow.onMessage);
+// scheduler('mqtt', home.pool.pumpMed.schedule, home.pool.pumpMed.topic, home.pool.pumpMed.onMessage);
+// scheduler('mqtt', home.pool.pumpHi.schedule, home.pool.pumpHi.topic, home.pool.pumpHi.onMessage);
 
 //=======================================================================================
 //                       Pool Scheduler Function End
@@ -127,10 +146,3 @@ console.log("Running " + topic + " at " + currentHour)
 //=======================================================================================
 //
 //=======================================================================================
-
-
-
-scheduler('mqtt', home.pool.pumpOff.schedule, home.pool.pumpOff.topic, home.pool.pumpOff.onMessage);
-scheduler('mqtt', home.pool.pumpLow.schedule, home.pool.pumpLow.topic, home.pool.pumpLow.onMessage);
-scheduler('mqtt', home.pool.pumpMed.schedule, home.pool.pumpMed.topic, home.pool.pumpMed.onMessage);
-scheduler('mqtt', home.pool.pumpHi.schedule, home.pool.pumpHi.topic, home.pool.pumpHi.onMessage);

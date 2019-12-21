@@ -1,15 +1,13 @@
 const dataHandler = require('./dataHandler')
+const myEmitter = require('./myEmitter')
+const schedule = require('node-schedule')
 const axios = require('axios')
-// power.js is responsible for connection to griddy and performing all power related calculations and loogging
-// Variables and Constant Declarations
-const tduPrice = 6.0;
-var griddyPrice = 0.0;
-var secondsUntilRefresh = 0; // Used to store the seconds until new Griddy data is available
-var latestGriddyData = {};
 
-function isEmpty(obj) {
-    return Object.getOwnPropertyNames(obj).length === 0;
-}
+const tduPrice = 6.0;
+const priceSpikePrice = 9.0;
+var priceSpike = false;
+
+
 //=================================================================================================================
 //                                              End of Variables 
 //=================================================================================================================
@@ -20,8 +18,12 @@ function isEmpty(obj) {
 //                                      Function to do Stuff With Data From Griddy
 //=================================================================================================================
 function griddyDoStuff(dataIn){
-    module.exports.price = tduPrice + parseFloat(dataIn.price_ckwh);
-    
+    if(dataIn.price_ckwh >= priceSpikePrice && !priceSpike){
+        myEmitter.emit('priceSpike', true);
+    }
+    else if(dataIn.price_ckwh < priceSpikePrice && priceSpike){
+        myEmitter.emit('priceSpike', false);
+    }
 }
 //=================================================================================================================
 //                               End of Function to do Stuff With Data From Griddy
@@ -29,41 +31,37 @@ function griddyDoStuff(dataIn){
 
 
 //=================================================================================================================
-//                                 ASync/Await Function to run code Syncronously
+//                  Code Block Used to Call Functions In Order Every 5 Minutes WHen Data Is Available
 //=================================================================================================================
-//                This function needs to be moved to app.js so that other functions can be ran in line
-//                 This code does not function as intended functions are strill running async
+               
 async function doStuff(){
-try{
-    
-    var axData = await axios.post('https://app.gogriddy.com/api/v1/insights/getnow', {settlement_point:'LZ_WEST'})
-    .then(function (response) {
-        let resData = response.data.now;
-        dataHandler.dbInsert('griddyData', resData)
-        griddyDoStuff(resData);
-    })
-      .catch(function (error) {
+    try{
+        var axData = await axios.post('https://app.gogriddy.com/api/v1/insights/getnow', {settlement_point:'LZ_WEST'})
+        .then(function (response) {
+            let resData = response.data.now;
+            dataHandler.dbInsert('griddyData', resData)
+            griddyDoStuff(resData);
+        })
+        .catch(function (error) {
         console.log(error);
-      });
+        });
     } 
-
-catch(err){
-    console.error(err);
-    // console.log(griddyData);
+    catch(err){
+        console.error(err);
+    }
 }
 
-}
+var griddyRule = new schedule.RecurrenceRule();
+griddyRule.minute = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 55];
+var j = schedule.scheduleJob(griddyRule, function(){
+   doStuff();
+});
 
 //=================================================================================================================
-//                                  End of ASync/Await Function to run code Syncronously
+//           End of Code Block Used to Call Functions In Order Every 5 Minutes WHen Data Is Available
 //=================================================================================================================
 
 
 //=================================================================================================================
-//
+//                              
 //=================================================================================================================
-doStuff();
-var griddyInterval = setInterval(doStuff, 300000);
-
-exports.price = tduPrice + griddyPrice;
-exports.kwh = 200;
