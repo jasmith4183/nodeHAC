@@ -4,7 +4,9 @@ const schedule = require('node-schedule')
 const axios = require('axios')
 
 const tduPrice = 6.0;
-const priceSpikePrice = 9.0;
+const leastPriceSpikePrice = 9.0;
+const moderatePriceSpikePrice = 15.0;
+const severePriceSpikePrice = 30.0;
 var priceSpike = false;
 
 
@@ -18,11 +20,17 @@ var priceSpike = false;
 //                                      Function to do Stuff With Data From Griddy
 //=================================================================================================================
 function griddyDoStuff(dataIn){
-    if(dataIn.price_ckwh >= priceSpikePrice && !priceSpike){
-        myEmitter.emit('priceSpike', true);
+    if(dataIn.price_ckwh >= severePriceSpikePrice && !priceSpike){
+        myEmitter.emit('priceSpike', 1);
     }
-    else if(dataIn.price_ckwh < priceSpikePrice && priceSpike){
-        myEmitter.emit('priceSpike', false);
+    if(dataIn.price_ckwh >= moderatePriceSpikePrice && !priceSpike){
+        myEmitter.emit('priceSpike', 2);
+    }
+    if(dataIn.price_ckwh >= leastPriceSpikePrice && !priceSpike){
+        myEmitter.emit('priceSpike', 3);
+    }
+    else if(dataIn.price_ckwh < leastPriceSpikePrice && priceSpike){
+        myEmitter.emit('priceSpike', 0);
     }
 }
 //=================================================================================================================

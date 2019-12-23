@@ -1,14 +1,5 @@
 const schedule = require('node-schedule')
-const mqtt = require('mqtt')
-const client = mqtt.connect('mqtt://localhost:1883')
-
-
-
-
-
-
-
-
+const dataHandler = require('./dataHandler')
 
 
 function scheduler(controlType, array, topic, message){
@@ -16,7 +7,7 @@ function scheduler(controlType, array, topic, message){
     let currentHour = currentDate.getHours();
     if(array[currentHour] == 1){ 
         if(controlType == 'mqtt'){
-            client.publish(topic, message)
+            dataHandler.sendMqtt(topic, message);
         }
 console.log("Running " + topic + " at " + currentHour)
     }
