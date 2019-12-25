@@ -6,20 +6,28 @@ const device = require('./device')
 const mqtt = require('mqtt')
 const client = mqtt.connect('mqtt://localhost:1883')
 
+//=======================================================================================
+//                                 MQTT Listener Setup
+//=======================================================================================
+
 client.on('connect', () => {
-    client.subscribe('home/pool/pump/stat/POWER1')
-    client.subscribe('home/pool/pump/stat/POWER2')
-    client.subscribe('home/pool/pump/stat/POWER3')
-    client.subscribe('home/pool/pump/stat/POWER4')
+    client.subscribe('home/#')
 })
 
 client.on('message', (topic, message) => {
-    const foundDevice = device.myDevices.find((device) =>{
-        return device.statTopic === topic;
-    })
-    foundDevice.updateState(message);
+    // console.log(topic + ' ' + message);
+    if(device.myDevices.includes(topic)){
+        const D = device.myDevices.find((device) =>{
+            return device.statTopic === topic;
+        })
+        console.log(messgage + ': MQTT Message Recieved for ' + D.name + 'in ' + D.room);
+        D.updateState(message);
+    }
 })
-  
+ 
+//=======================================================================================
+//                                Mongo Insert Document Function
+//=======================================================================================
 function dbInsert(mongoCollection, mongoData){
     MongoClient.connect(url,  { useUnifiedTopology: true }, function(err, db) {
      if (err) throw err;
@@ -31,11 +39,12 @@ function dbInsert(mongoCollection, mongoData){
   });
 });
 }
-
-function sendMqtt(topic, message){
+//=======================================================================================
+//                                 MQTT Send Message
+//=======================================================================================
+function sendMqttMessage(topic, message){
     client.publish(topic, message);
 }
 module.exports.dbInsert = dbInsert;
-module.exports.sendMqtt = sendMqtt
-
+module.exports.sendMqtt = sendMqttMessage;
 
