@@ -1,4 +1,4 @@
-var dataHandler = require('./dataHandler')
+var sendMqtt = require('./dataHandler').sendMqtt
 var myEmitter = require('./myEmitter')
     myEmitter.on('priceSpike', (priceSpikeSeverity) => { priceSpike(priceSpikeSeverity) });
 const schedule = require('node-schedule')
@@ -24,13 +24,13 @@ class Device{
         this.currentState = 'ON';
     }
     turnOff(){
-        console.log(this.name +' Turned Off');
-        // dataHandler.sendMqttMessages(this.cmndTopic, this.offMessage)
+        // console.log(this.name +' Turned Off');
+        sendMqtt(this.cmndTopic, this.offMessage)
         return [this.cmndTopic, this.offMessage];
     }
     turnOn(){
-        console.log(this.name +' Turned On');
-        // dataHandler.sendMqtt(this.cmndTopic, this.onMessage);
+        // console.log(this.name +' Turned On');
+        sendMqtt(this.cmndTopic, this.onMessage);
         return [this.cmndTopic, this.onMessage];
     }
     updateState(message){
@@ -60,7 +60,7 @@ function priceSpike(p){
             // console.log(D.name + ' Sees Price Spike Level: ' + priceSpikeSeverity);
             // console.log(D.name + ' Has Price Spike Level: ' + D.priceShutdown);
        if(0 != D.priceShutdown && D.priceShutdown <= p){
-            console.log('Price Shutdown for Device');
+            // console.log('Price Shutdown for Device');
             D.hiPriceShutdown();
         }
     })
@@ -85,6 +85,7 @@ myDevices[0].priceShutdownMode = 'ON';
 //     return device.room === 'living';
 // })
 // console.log(filteredDevices);
-//==========================================
+//==========================================\
+// myDevices[1].turnOn();
 module.exports = Device;
 module.exports.myDevices = myDevices
