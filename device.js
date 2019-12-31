@@ -1,36 +1,44 @@
-var sendMqtt = require('./dataHandler').sendMqtt
-var myEmitter = require('./myEmitter')
-    myEmitter.on('priceSpike', (priceSpikeSeverity) => { priceSpike(priceSpikeSeverity) });
-const schedule = require('node-schedule')
+const dH = require('./dataHandler');
+const fs = require('fs');
+var  myEmitter = require('./myEmitter');
+    myEmitter.on('priceSpike', (priceSpikeSeverity) => { priceSpikeHandler(priceSpikeSeverity) });
+   myEmitter.on('deviceUpdate', (topic, message) => { deviceUpdater(topic, message) });
+const schedule = require('node-schedule');
 var myDevices = [];
 
 
 class Device{
-    constructor(room, name, onTime, offTime){
-        this.onTime = schedule.scheduleJob(onTime, this.turnOn.bind(this));
-        this.offTime = schedule.scheduleJob(offTime, this.turnOff.bind(this));
-        this.type = '';//switch, dimmer, virtual, etc.....
-        this.name = name;
-        this.room = room;
+    constructor(newDevice){
+        //Scheduling below works great so far.  Need to implement a system for allowing multiple times
+        this.onTime = schedule.scheduleJob(newDevice.onTime, this.turnOn.bind(this));
+       // this.offTime = schedule.scheduleJob(offTime, this.turnOff.bind(this));
+        this.type = newDevice.type;//switch, dimmer, virtual, etc.....
+        this.name = newDevice.name;
+        this.room = newDevice.room;
         this.description ='';//user friendly name
-        this.cmndTopic = 'home/pool/pump/cmnd/POWER1';
-        this.statTopic = 'home/pool/pump/stat/POWER1';
-        this.onMessage = 'ON';
-        this.offMessage = 'OFF';
-        this.priceShutdown = 3; // 0 for none 1-3 for different severity levels
-        this.priceShutdownMode = 'OFF';
-        this.resumeAfterShutdown = true;
+        this.cmndTopic = newDevice.cmndTopic;
+        this.statTopic = newDevice.statTopic;
+        this.onMessage = newDevice.onMessage;
+        this.offMessage = newDevice.offMessage;
+        this.priceShutdown = newDevice.priceShutdown; // 0 for none 1-3 for different severity levels 1 Most Severe 3 Least Severe
+        this.priceShutdownMode = newDevice.priceShutdownMode;
+        this.resumeAfterShutdown = newDevice.resumeAfterShutdown;
         this.preShutdownState = '';
         this.currentState = 'ON';
+        // myEmitter.on(this.statTopic, (state) => { 
+        //     console.log(this.name + this.currentState);
+        //     this.currentState = state ;
+        //     console.log(this.name + this.currentState);
+        // });
     }
     turnOff(){
-        // console.log(this.name +' Turned Off');
-        sendMqtt(this.cmndTopic, this.offMessage)
+        console.log(this.name +' Turned Off');
+        dH.sendMqtt(this.cmndTopic, this.offMessage)
         return [this.cmndTopic, this.offMessage];
     }
     turnOn(){
-        // console.log(this.name +' Turned On');
-        sendMqtt(this.cmndTopic, this.onMessage);
+        console.log(this.name +' Turned On');
+        dH.sendMqtt(this.cmndTopic, this.onMessage);
         return [this.cmndTopic, this.onMessage];
     }
     updateState(message){
@@ -54,7 +62,7 @@ class Device{
 //=======================================================================================
 //                       Price Spike Function Ran When Listener Sees Price Spike
 //=======================================================================================
-function priceSpike(p){
+function priceSpikeHandler(p){
     console.log('Devices Sees Price Spike Level: ' + p);
     myDevices.forEach((D) => {
             // console.log(D.name + ' Sees Price Spike Level: ' + priceSpikeSeverity);
@@ -65,21 +73,27 @@ function priceSpike(p){
         }
     })
 }
-//Test Devices
-myDevices = [
-    new Device('pool', 'pumpOff', '48 * * * *', '49 * * * *'), 
-    new Device('pool', 'pumpLo', '48 * * * *', '49 * * * *'), 
-    new Device('pool', 'pumpMed', '48 * * * *', '49 * * * *'),
-    new Device('pool', 'pumpHi', '48 * * * *', '49 * * * *')
-];
-myDevices[1].cmndTopic = 'home/pool/pump/cmnd/POWER2';
-myDevices[1].statTopic = 'home/pool/pump/stat/POWER2';
-myDevices[2].cmndTopic = 'home/pool/pump/cmnd/POWER3';
-myDevices[2].statTopic = 'home/pool/pump/stat/POWER3';
-myDevices[3].cmndTopic = 'home/pool/pump/cmnd/POWER4';
-myDevices[3].statTopic = 'home/pool/pump/stat/POWER4';
+function deviceUpdater(topic, message){
+    const filteredDevices = myDevices.find((device)=> {
+        return device.statTopic === topic;
+    })
+    console.log(message);
+    console.log(filteredDevices);
+  filteredDevices.currentState = message;
+    console.log(filteredDevices);
 
-myDevices[0].priceShutdownMode = 'ON';
+}
+var myDevices = [];
+async function createDevices(){
+    var deviceArray = await fs.readFileSync('myDevices.json', 'utf8');
+    deviceArray = await JSON.parse(deviceArray);
+    deviceArray.forEach((item, index) =>{ 
+    myDevices[index] = new Device(item);
+    });
+    console.log(myDevices.length + " Devices Created From myDevices.json");
+}
+createDevices();
+
 //test code to filter by room-- works
 // const filteredDevices = myDevices.filter((device)=> {
 //     return device.room === 'living';

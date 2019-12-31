@@ -1,14 +1,14 @@
-const dataHandler = require('./dataHandler')
-const myEmitter = require('./myEmitter')
-const schedule = require('node-schedule')
-const axios = require('axios')
-
-const priceSpikePrices =[30.0, 9.0, 1.0];//Most Severe, Moderately Severe, Least Severe
+const dH = require('./dataHandler');
+const myEmitter = require('./myEmitter');
+const schedule = require('node-schedule');
+const griddyURL = 'https://app.gogriddy.com/api/v1/insights/getnow';
+const griddyParams = {settlement_point:'LZ_WEST'};
+const priceSpikePrices =[30.0, 9.0, 6.0];//Most Severe, Moderately Severe, Least Severe
 var currentPriceSpike = 0; 
 //=================================================================================================================
-//                                      Function to do Stuff With Data From Griddy
+//                                      Function to Look For Price Spikes From Griddy
 //=================================================================================================================
-function griddyDoStuff(dataIn){
+function priceSpikeCheck(dataIn){
     priceSpikePrices.forEach((price, key) => {
         key += 1;
         if(dataIn.price_ckwh >= price && currentPriceSpike != key){
@@ -27,32 +27,32 @@ function griddyDoStuff(dataIn){
 //=================================================================================================================
 //                  Code Block Used to Call Functions In Order Every 5 Minutes WHen Data Is Available
 //=================================================================================================================          
-async function getData(){
+async function griddyMainLoop(){
     try{
-        var axData = await axios.post('https://app.gogriddy.com/api/v1/insights/getnow', {settlement_point:'LZ_WEST'})
-        .then(function (response) {
+        var axData = await dH.postHTTP(griddyURL, griddyParams);
+        let resData = axData.data.now;
+        dH.dbInsert('griddyData', resData);
+        priceSpikeCheck(resData);
+        // .then(function (response) {
            
-            let resData = response.data.now;
-            dataHandler.dbInsert('griddyData', resData);
+        //     let resData = response.data.now;
+        //     dH.dbInsert('griddyData', resData);
            
-            griddyDoStuff(resData);
-            return resData;
-        })
-        .catch(function (error) {
-        console.log(error);
-        });
+        //     griddyDoStuff(resData);
+        //     return resData;
+        // })
+        // .catch(function (error) {
+        // console.log(error);
+        // });
     } 
     catch(err){
         console.error(err);
     }
-    console.log(axData);
 }
 var griddyRule = new schedule.RecurrenceRule();
 griddyRule.minute = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 55];
-var j = schedule.scheduleJob(griddyRule, function(){
-   getData();
-});
+var griddySchedule = schedule.scheduleJob(griddyRule, () =>{griddyMainLoop();});
 //=================================================================================================================
 //                                                Exports
 //=================================================================================================================
-module.exports.startup = getData; // Function to be called at startup of app to get initial griddy data
+module.exports.startup = griddyMainLoop; // Function to be called at startup of app to get initial griddy data

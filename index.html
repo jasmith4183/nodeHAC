@@ -5,48 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <style>
-    .parent {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-grid-template-rows: repeat(12, 1fr);
-grid-column-gap: 10px;
-grid-row-gap: 10px;
-width: 100vw;
-height: 100vh;
+    
+.offButton {
+	box-shadow: 0px 0px 0px 2px #9fb4f2;
+	background:linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);
+	background-color:#7892c2;
+	border-radius:10px;
+	border:1px solid #4e6096;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:28px;
+	font-weight:bold;
+	padding:28px 76px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #283966;
+}
+.offButton:hover {
+	background:linear-gradient(to bottom, #476e9e 5%, #7892c2 100%);
+	background-color:#476e9e;
+}
+.offButton:active {
+	position:relative;
+	top:1px;
 }
 
-.div1 { grid-area: 1 / 1 / 3 / 5; }
-.div1 { background-color: powderblue}
-.div2 { grid-area: 3 / 1 / 5 / 3; }
-.div2 { background-color: coral}
-.div3 { grid-area: 3 / 3 / 5 / 5; }
-.div3 { background-color: palevioletred}
-.div4 { grid-area: 5 / 1 / 7 / 3; }
-.div4 { background-color: wheat}
-.div5 { grid-area: 5 / 3 / 7 / 5; }
-.div5 { background-color: forestgreen}
-.div6 { grid-area: 7 / 1 / 9 / 5; }
-.div6 { background-color: fuchsia}
-.div7 { grid-area: 9 / 1 / 11 / 5; }
-.div7 { background-color: rebeccapurple}
-.div8 { grid-area: 11 / 1 / 13 / 5; }
-.div8 { background-color: saddlebrown}
 h1{text-align: center;
 font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
     </style>
-    <title>Document</title>
+    <title>Pool Controller</title>
 </head>
 <body>
-    <div class="parent">
-        <div class="div1"><h1>Pool Controller</h1> </div>
-        <div class="div2"><h1>Off</h1> </div>
-        <div class="div3"><H1>Low</H1> </div>
-        <div class="div4"><h1>Med</h1> </div>
-        <div class="div5"><h1>High</h1> </div>
-        <div class="div6"><h1>High Price Override Active</h1> </div>
-        <div class="div7"><h1>Schedule</h1> </div>
-        <div class="div8"><h1>Mode</h1> </div>
-        </div>  
+    <p id="target">rainbow 🌈</p>
+    <a href="#" name = Off class="offButton" onclick = "setPump('pumpOff')">OFF</a>
+    <a href="#" name = Low class="offButton" onclick = "setPump('pumpLow')">Low</a>
+    <a href="#" name = Med class="offButton" onclick = "setPump('pumpMed')">Med</a>
+    <a href="#" name = Hi class="offButton" onclick = "setPump('pumpHi')">Hi</a>
+    
+    <script src="/socket.io/socket.io.js"></script>
+
+
+<script>
+  var socket = io.connect('http://localhost');
+    socket.on('news', function (data) {
+        console.log(data);
+        socket.emit('my other event', { my: 'data' });
+    });
+    socket.on('test', function (data) {
+        document.getElementById('target').style.fontSize = data;
+        console.log(data);
+        socket.emit('my other event', { my: 'data' });
+    });
+function setPump(value){
+    socket.emit('setPump', value);
+}
+</script>
 </body>
 </html>
