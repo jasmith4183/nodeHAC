@@ -1,8 +1,8 @@
 const dH = require('./dataHandler');
 const schedule = require('node-schedule');
-const weatherURL = 'https://api.darksky.net/forecast/360900d8ceb6bb275ad2d580688f8beb/31.427431,-100.491683';
+require('dotenv').config({path: __dirname + '/.env'})
+const weatherURL = 'https://api.darksky.net/forecast/' + process.env.API_TOKEN + '/31.427431,-100.491683';
 const weatherOptions = '?exclude=[minutely,hourly,daily,flags,alerts]';
-
 
 async function weatherMainLoop(){
     try{
