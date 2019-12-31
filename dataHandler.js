@@ -16,7 +16,7 @@ async function postHTTP(url, payload){return axios.post(url, payload );}
 //=======================================================================================
 //                                 
 //=======================================================================================
-
+async function getHTTP(url, options){return axios.get(url, options);}
 //=======================================================================================
 //                                 MQTT Listener Setup
 //=======================================================================================
@@ -42,7 +42,7 @@ function dbInsert(mongoCollection, mongoData){
         const collection = db.collection(mongoCollection);
         collection.insertOne(mongoData, function(err, res) {
             if (err) throw err;
-            console.log(mongoData.date +":  Document Insert Into " + mongoCollection + " Was A Success");
+            console.log(":  Document Insert Into " + mongoCollection + " Was A Success");
             client.close();
         });
     });
@@ -93,4 +93,6 @@ function sendMqttMessage(topic, message){
 module.exports.dbInsert = dbInsert
 module.exports.sendMqtt = sendMqttMessage
 module.exports.postHTTP = postHTTP
+module.exports.getHTTP = getHTTP
+
 

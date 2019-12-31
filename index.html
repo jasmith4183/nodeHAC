@@ -51,12 +51,12 @@ font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   var socket = io.connect('http://localhost');
     socket.on('news', function (data) {
         console.log(data);
-        socket.emit('my other event', { my: 'data' });
+        socket.emit('clientInfo', 'Client Connected');
     });
     socket.on('test', function (data) {
         document.getElementById('target').style.fontSize = data;
         console.log(data);
-        socket.emit('my other event', { my: 'data' });
+        socket.emit('clientInfo', 'Client Received test data');
     });
 function setPump(value){
     socket.emit('setPump', value);

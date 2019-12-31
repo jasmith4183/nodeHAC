@@ -33,17 +33,7 @@ async function griddyMainLoop(){
         let resData = axData.data.now;
         dH.dbInsert('griddyData', resData);
         priceSpikeCheck(resData);
-        // .then(function (response) {
-           
-        //     let resData = response.data.now;
-        //     dH.dbInsert('griddyData', resData);
-           
-        //     griddyDoStuff(resData);
-        //     return resData;
-        // })
-        // .catch(function (error) {
-        // console.log(error);
-        // });
+        myEmitter.emit('griddyPrice', resData.price_ckwh);
     } 
     catch(err){
         console.error(err);
