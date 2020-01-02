@@ -1,8 +1,8 @@
 const dH = require('./dataHandler');
 const fs = require('fs');
 var  myEmitter = require('./myEmitter');
-    myEmitter.on('priceSpike', (priceSpikeSeverity) => { priceSpikeHandler(priceSpikeSeverity) });
-   myEmitter.on('deviceUpdate', (topic, message) => { deviceUpdater(topic, message) });
+     myEmitter.on('priceSpike', (priceSpikeSeverity) => { priceSpikeHandler(priceSpikeSeverity) });
+     myEmitter.on('deviceUpdate', (topic, message) => { deviceUpdater(topic, message) });
 const schedule = require('node-schedule');
 var myDevices = [];
 
@@ -25,11 +25,7 @@ class Device{
         this.resumeAfterShutdown = newDevice.resumeAfterShutdown;
         this.preShutdownState = '';
         this.currentState = 'ON';
-        // myEmitter.on(this.statTopic, (state) => { 
-        //     console.log(this.name + this.currentState);
-        //     this.currentState = state ;
-        //     console.log(this.name + this.currentState);
-        // });
+       
     }
     turnOff(){
         console.log(this.name +' Turned Off');
@@ -58,6 +54,11 @@ class Device{
 
     }
 }
+function findByRoom(room){
+    const filteredItems = myDevices.filter(item => item.room.includes(room));
+    return [...filteredItems];
+
+}
 
 //=======================================================================================
 //                       Price Spike Function Ran When Listener Sees Price Spike
@@ -65,10 +66,7 @@ class Device{
 function priceSpikeHandler(p){
     console.log('Devices Sees Price Spike Level: ' + p);
     myDevices.forEach((D) => {
-            // console.log(D.name + ' Sees Price Spike Level: ' + priceSpikeSeverity);
-            // console.log(D.name + ' Has Price Spike Level: ' + D.priceShutdown);
-       if(0 != D.priceShutdown && D.priceShutdown <= p){
-            // console.log('Price Shutdown for Device');
+        if(0 != D.priceShutdown && D.priceShutdown <= p){
             D.hiPriceShutdown();
         }
     })
@@ -91,15 +89,11 @@ async function createDevices(){
     myDevices[index] = new Device(item);
     });
     console.log(myDevices.length + " Devices Created From myDevices.json");
+    
 }
 createDevices();
 
-//test code to filter by room-- works
-// const filteredDevices = myDevices.filter((device)=> {
-//     return device.room === 'living';
-// })
-// console.log(filteredDevices);
-//==========================================\
-// myDevices[1].turnOn();
+
 module.exports = Device;
 module.exports.myDevices = myDevices
+module.exports.findByRoom = findByRoom
