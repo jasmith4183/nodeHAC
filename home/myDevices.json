@@ -3,6 +3,7 @@
         "type": "switch",
         "room": "pool",
         "name": "pumpHi",
+        "description": "Hi",
         "cmndTopic": "home/pool/pump/cmnd/POWER4",
         "onTime": "0 11 * * *",
         "statTopic": "home/pool/pump/stat/POWER4",
@@ -12,10 +13,11 @@
         "priceShutdownMode": "OFF",
         "resumeAfterShutdown": "true"
       }, 
-    {
+      {
         "type": "switch",
         "room": "pool",
         "name": "pumpOff",
+        "description": "Off",
         "cmndTopic": "home/pool/pump/cmnd/POWER1",
         "onTime": "0 5 * * *",
         "statTopic": "home/pool/pump/stat/POWER1",
@@ -25,10 +27,11 @@
         "priceShutdownMode": "OFF",
         "resumeAfterShutdown": "true"
       }, 
-    {
+      {
         "type": "switch",
         "room": "pool",
         "name": "pumpLow",
+        "description": "Low",
         "cmndTopic": "home/pool/pump/cmnd/POWER2",
         "onTime": "0 23 * * *",
         "statTopic": "home/pool/pump/stat/POWER2",
@@ -38,10 +41,11 @@
         "priceShutdownMode": "OFF",
         "resumeAfterShutdown": "true"
       },
-    {
+      {
         "type": "switch",
         "room": "pool",
         "name": "pumpMed",
+        "description": "Med",
         "cmndTopic": "home/pool/pump/cmnd/POWER3",
         "onTime": "0 0 * * *",
         "statTopic": "home/pool/pump/stat/POWER3",

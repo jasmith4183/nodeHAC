@@ -1,0 +1,17 @@
+[
+    {
+    "name": "pool",
+    "description": "Swimming Pool",
+    "widgets": "",
+    "background": "pool.jpg",
+    "devices": ""
+  },
+  {
+    "name": "living",
+    "description": "Living Room",
+    "widgets": "",
+    "background": "",
+    "devices": ""
+  }
+
+]

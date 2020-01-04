@@ -12,20 +12,13 @@ app.get('/', function (req, res) {
 });
 
 io.on('connection', (socket) => {
-    socket.emit('news', "Connected to Server" );
     socket.emit('newWeather', latestWeatherData );
     socket.emit('newPrice', latestPowerData );
     socket.emit('newDevices', devices.findByRoom('pool'));
-    socket.on('clientInfo', (data) => {
-        console.log(data);
-    });
     socket.on('setPump', (data) => {
         console.log(data);
         myEmitter.emit('deviceControlRequested', data);
-    });
-
-
-  
+    }); 
 });
 function uiMainLoop(topic, weather){   io.emit(topic, weather);   }
 var latestWeatherData = {};

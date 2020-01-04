@@ -15,7 +15,7 @@ class Device{
         this.type = newDevice.type;//switch, dimmer, virtual, etc.....
         this.name = newDevice.name;
         this.room = newDevice.room;
-        this.description ='';//user friendly name
+        this.description = newDevice.description;
         this.cmndTopic = newDevice.cmndTopic;
         this.statTopic = newDevice.statTopic;
         this.onMessage = newDevice.onMessage;
@@ -83,7 +83,7 @@ function deviceUpdater(topic, message){
 }
 var myDevices = [];
 async function createDevices(){
-    var deviceArray = await fs.readFileSync('myDevices.json', 'utf8');
+    var deviceArray = await fs.readFileSync('home/myDevices.json', 'utf8');
     deviceArray = await JSON.parse(deviceArray);
     deviceArray.forEach((item, index) =>{ 
     myDevices[index] = new Device(item);

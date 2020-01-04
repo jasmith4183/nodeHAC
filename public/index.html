@@ -8,47 +8,18 @@
     <title>Pool Controller</title>
 </head>
 <body>
-    <!-- <meter id="tempMeter" value="0" min="0" max="120"></meter> -->
     <p class= "weather">It is currently &nbsp<span id=weatherSummary></span>&nbsp and <span id="weatherTemp"></span>&nbsp Degrees outside</p>
     <p class= "power">The Current Price of Electricity is &nbsp <span id='powerPrice'></span> &nbsp c/Kwh </p>
-    <a href="#" name = Off class="block" onclick = "setPump('pumpOff')">OFF</a>
-    <a href="#" name = Low class="block" onclick = "setPump('pumpLow')">Low</a>
-    <a href="#" name = Med class="block" onclick = "setPump('pumpMed')">Med</a>
-    <a href="#" name = Hi class="block" onclick = "setPump('pumpHi')">Hi</a>
+    <div id="ctrl-ui-btn">
+    </div>
+        <ul id ="myList"></ul>
     <div id="devices"></div>
     <script src="/socket.io/socket.io.js"></script>
 
 
-<script>
-  var socket = io.connect('http://192.168.9.39');
-    socket.on('news', function (data) {
-        console.log(data);
-        socket.emit('clientInfo', 'Client Connected');
-    });
-    socket.on('newWeather', function (data) {
-        document.getElementById('weatherSummary').innerHTML = data.summary;
-        document.getElementById('weatherTemp').innerHTML = data.temperature;
-        // document.getElementById("tempMeter").value = data.temperature;
-        console.log(data);
-        socket.emit('clientInfo', 'Client Received Weather Data');
-    });
-    socket.on('newPrice', function (data) {
-        document.getElementById('powerPrice').innerHTML = data;
-        console.log(data);
-        socket.emit('clientInfo', 'Client Received Power Data');
-    });
-    socket.on('newDevices', function (data) {
-        const markup = `
-        <ul class="devices">
-            ${data.map(data => `<li>${data.name} is ${data.currentState }</li>`).join('')}
-        </ul>
-        `;
-        document.getElementById('devices').innerHTML = markup;
+<script src="main.js">
+    
 
-    });
-function setPump(value){
-    socket.emit('setPump', value);
-}
 
 </script>
 </body>
