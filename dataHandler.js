@@ -1,14 +1,16 @@
 const mongo = require('mongodb').MongoClient;
+const axios = require('axios');
+const myEmitter = require('./myEmitter');
+const mqtt = require('mqtt');
+const fs = require('fs');
+
 const mongoURL = "mongodb://localhost:27017/";
 const mongoDB = 'mydb';
 const mongoOptions = {useNewUrlParser: true, useUnifiedTopology: true};
 
-const device = require('./device');
-const axios = require('axios')
-const myEmitter = require('./myEmitter')
+// const device = require('./device');
 
-const mqtt = require('mqtt')
-const client = mqtt.connect('mqtt://localhost:1883')
+const client = mqtt.connect('mqtt://localhost:1883');
 //=======================================================================================
 //                                 Axios Post Request
 //=======================================================================================
@@ -20,10 +22,7 @@ async function getHTTP(url, options){return axios.get(url, options);}
 //=======================================================================================
 //                                 MQTT Listener Setup
 //=======================================================================================
-
-client.on('connect', () => {
-    client.subscribe('#')
-})
+client.on('connect', () => {client.subscribe('#')});
 
 client.on('message', (topic, message) => {
     if(topic.includes("tele") || topic.includes("RESULT")){    }
@@ -34,7 +33,6 @@ client.on('message', (topic, message) => {
 //=======================================================================================
 //                                Mongo Insert Document Function
 //=======================================================================================
-//This function is operational and has no known bugs
 function dbInsert(mongoCollection, mongoData){
     mongo.connect(mongoURL, mongoOptions, (err, client) => {
         if (err) throw err;
@@ -47,22 +45,13 @@ function dbInsert(mongoCollection, mongoData){
         });
     });
 }
-
-mongo.connect(mongoURL, mongoOptions, (err, client) => {
-    if (err) throw err;
-    const db = client.db(mongoDB);});
+// mongo.connect(mongoURL, mongoOptions, (err, client) => {
+//     if (err) throw err;
+//     const db = client.db(mongoDB);});
 //=======================================================================================
 //                                 Get mongo data using find
 //=======================================================================================
 //I can not seem to get this function to work properly async so that my code properl;y waits on getting its data
-// async function getCollection(mongoCollection, a ={}){
-//      db = new mongo().getDB(mongoDB); 
-//         const collection = db.collection(mongoCollection);
-
-//         let response = await collection.find(a).toArray();
-//         return response;
-//     }
-
 async function getDoc(Col, a = {}) {
     var results = [];
     return new Promise((resolve, reject) => {
@@ -83,13 +72,21 @@ async function getDoc(Col, a = {}) {
             resolve(results);
             })
     }
-// console.log(getDoc('poolData', {'speed': 2}));
 //=======================================================================================
 //                                 MQTT Send Message
 //=======================================================================================
 function sendMqttMessage(topic, message){
     client.publish(topic, message);
 }
+//=======================================================================================
+//                                 Get JSON File
+//=======================================================================================
+async function getJsonFile(fileName){
+    var jsonData = await fs.readFileSync(fileName, 'utf8');
+    jsonData = await JSON.parse(jsonData);
+    return  jsonData;
+}
+module.exports.getJsonFile = getJsonFile
 module.exports.dbInsert = dbInsert
 module.exports.sendMqtt = sendMqttMessage
 module.exports.postHTTP = postHTTP

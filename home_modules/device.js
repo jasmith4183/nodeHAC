@@ -1,17 +1,10 @@
-const dH = require('./dataHandler');
-const fs = require('fs');
-var  myEmitter = require('./myEmitter');
+const dH = require('../dataHandler');
+var  myEmitter = require('../myEmitter');
      myEmitter.on('priceSpike', (priceSpikeSeverity) => { priceSpikeHandler(priceSpikeSeverity) });
      myEmitter.on('deviceUpdate', (topic, message) => { deviceUpdater(topic, message) });
-const schedule = require('node-schedule');
-var myDevices = [];
-
 
 class Device{
     constructor(newDevice){
-        //Scheduling below works great so far.  Need to implement a system for allowing multiple times
-        this.onTime = schedule.scheduleJob(newDevice.onTime, this.turnOn.bind(this));
-       // this.offTime = schedule.scheduleJob(offTime, this.turnOff.bind(this));
         this.type = newDevice.type;//switch, dimmer, virtual, etc.....
         this.name = newDevice.name;
         this.room = newDevice.room;
@@ -27,9 +20,19 @@ class Device{
         this.currentState = 'ON';
        
     }
+    toggle(){
+        if(this.currentState = 'ON'){
+            dH.sendMqtt(this.cmndTopic, this.offMessage);
+            console.log(this.name +' Toggled Off');
+        }
+        else{
+            dH.sendMqtt(this.cmndTopic, this.onMessage);
+            console.log(this.name +' Toggled On');
+        }
+    }
     turnOff(){
         console.log(this.name +' Turned Off');
-        dH.sendMqtt(this.cmndTopic, this.offMessage)
+        dH.sendMqtt(this.cmndTopic, this.offMessage);
         return [this.cmndTopic, this.offMessage];
     }
     turnOn(){
@@ -41,9 +44,6 @@ class Device{
         this.currentState = message;
         console.log('Device State Updated to ' + message);
     }
-    checkState(){
-
-    }
     hiPriceShutdown(){
         if(this.priceShutdownMode = 'ON'){
             this.turnOn();
@@ -54,17 +54,31 @@ class Device{
 
     }
 }
+class Room{
+    constructor(newRoom){
+    this.name =newRoom.name;
+    this.description = '';
+    this.widgets = '';
+    this.background = '';
+    this.devices = findByRoom(this.name);
+    
+    }
+    
+}
 function findByRoom(room){
     const filteredItems = myDevices.filter(item => item.room.includes(room));
+    console.log(room + " Has " + filteredItems.length + " Devices");
     return [...filteredItems];
 
 }
-
+function getRoomDevices(room){
+    const filteredItems = myRooms.filter(item => item.name.includes(room));
+    return filteredItems[0].devices;
+}
 //=======================================================================================
-//                       Price Spike Function Ran When Listener Sees Price Spike
+//               Price Spike Function Ran When Listener Sees Price Spike
 //=======================================================================================
 function priceSpikeHandler(p){
-    console.log('Devices Sees Price Spike Level: ' + p);
     myDevices.forEach((D) => {
         if(0 != D.priceShutdown && D.priceShutdown <= p){
             D.hiPriceShutdown();
@@ -75,25 +89,37 @@ function deviceUpdater(topic, message){
     const filteredDevices = myDevices.find((device)=> {
         return device.statTopic === topic;
     })
-    console.log(message);
-    console.log(filteredDevices);
-  filteredDevices.currentState = message;
-    console.log(filteredDevices);
-
+    filteredDevices.currentState = message;
 }
-var myDevices = [];
+//================================================================================
+//================================Create Rooms And Devices========================
+//================================================================================
 async function createDevices(){
-    var deviceArray = await fs.readFileSync('home/myDevices.json', 'utf8');
-    deviceArray = await JSON.parse(deviceArray);
+    var deviceArray = await dH.getJsonFile('home_json/myDevices.json');
     deviceArray.forEach((item, index) =>{ 
-    myDevices[index] = new Device(item);
+        myDevices[index] = new Device(item);
     });
     console.log(myDevices.length + " Devices Created From myDevices.json");
-    
 }
-createDevices();
-
-
-module.exports = Device;
+async function createRooms(){
+    var roomArray = await dH.getJsonFile('home_json/myRooms.json');
+    roomArray.forEach((item, index) =>{ 
+        myRooms[index] = new Room(item);
+    });
+    console.log(myRooms.length + " Rooms Created From myRooms.json");
+}
+async function setup(){
+    try{
+        await createDevices();
+        await createRooms();
+    }
+    catch(error){
+        console.log(error);
+    }
+}
+var myDevices = [];
+var myRooms = [];
+setup();
+module.exports.myRooms = myRooms
 module.exports.myDevices = myDevices
-module.exports.findByRoom = findByRoom
+module.exports.getRoomDevices = getRoomDevices
